@@ -1,0 +1,121 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.josecambronero</groupId>
+  <artifactId>phosphor-examples</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <name>phosphor-examples</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <maven.compiler.testSource>1.8</maven.compiler.testSource>
+    <maven.compiler.testTarget>1.8</maven.compiler.testTarget>
+    <phosphor.version>0.0.2-SNAPSHOT</phosphor.version>
+  </properties>
+
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>maven-latex-plugin-repo</id>
+      <url>http://akquinet.github.com/maven-latex-plugin/maven2/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <build>
+    <sourceDirectory>src/main</sourceDirectory>
+    <testSourceDirectory>src/test</testSourceDirectory>
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.18.1</version>
+        <executions>
+          <execution>
+            <id>simple-integer-tags</id>
+            <configuration>
+              <jvm>${project.build.directory}/jre-inst-int/bin/java</jvm>
+              <includes>
+                <include>**/*IntTagITCase.java</include>
+              </includes>
+              <reuseForks>false</reuseForks>
+              <argLine>-Xbootclasspath/p:${project.build.directory}/${project.build.finalName}.jar
+                -javaagent:${project.build.directory}/${project.build.finalName}.jar=enum,acmpeq,cacheDir=${project.build.directory}/cached-int</argLine>
+            </configuration>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+
+        </configuration>
+      </plugin>
+
+
+      <!--Makes accompanying report -->
+      <plugin>
+        <groupId>de.akquinet.maven</groupId>
+        <artifactId>maven-latex-plugin</artifactId>
+        <version>1.1</version>
+      </plugin>
+
+    </plugins>
+  </build>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <!-- Phosphor jar dependency added locally to ~/.m2 repo
+    can do so with the following command (assuming you have build the Phosphor jar
+    mvn install:install-file -Dfile=Phosphor-0.0.2-SNAPSHOT.jar \
+    -DgroupId=edu.columbia.cs.psl.phosphor -DartifactId=Phosphor -Dversion=0.0.2-SNAPSHOT \
+    -Dpackaging=jar-->
+
+    <dependency>
+      <groupId>edu.columbia.cs.psl.phosphor</groupId>
+      <artifactId>Phosphor</artifactId>
+      <version>${phosphor.version}</version>
+    </dependency>  
+
+  </dependencies>
+
+
+
+</project>
