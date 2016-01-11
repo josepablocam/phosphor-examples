@@ -28,21 +28,6 @@
 }
 
 
-\lstdefinestyle{Bash}
-{language=bash,
-keywordstyle=\color{blue},
-basicstyle=\ttfamily,
-morekeywords={peter@kbpet},
-alsoletter={:~$},
-morekeywords=[2]{peter@kbpet:},
-keywordstyle=[2]{\color{red}},
-literate={\$}{{\textcolor{red}{\$}}}1 
-         {:}{{\textcolor{red}{:}}}1
-         {~}{{\textcolor{red}{\textasciitilde}}}1,
-}
-
-
-
 \usepackage{titlesec}
 
 \setcounter{secnumdepth}{4}
@@ -59,11 +44,6 @@ literate={\$}{{\textcolor{red}{\$}}}1
 
 \title{A Beginner's Notes on Phosphor}
 \author{Jos\'e Cambronero}
-
-
-
-
-
 
 
 \begin{document}
@@ -158,7 +138,7 @@ of an assignment operation involving $x$, and thus should be tainted.
 We can use \verb|Tainter.taintedInt| to taint $x$, and \verb|Tainter.getTaint| to check the taint
 tag for $y$.
 
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 // source
 int x = 0;
 // sink
@@ -178,7 +158,7 @@ if we define $y$ in terms of a tainted $x$ and then redefine $y$ as a constant, 
 is not tainted. The excerpt from \verb|IntegerTagExamples.testExample2|  below
 shows this behavior.
 
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 // source
 int x = 0;
 // sink
@@ -199,7 +179,7 @@ taint exists, as the result is always constant, will yield a tainted tag with ta
 So for example, in the excerpt below $y$ is tainted despite the fact that it assigned 0, regardles
 of the tainted value of $x$.
 
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 // source
 int x = 1;
 x = Tainter.taintedInt(x, 1);
@@ -219,7 +199,7 @@ taint stemming from both $x$ and $w$, and nothing stemmed from $r$. Note that
 \verb|getTaintSource| is a simple helper that checks the bits in an integer tag to find the sources,
 it is not part of Phosphor.
 
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 // sources
 int x = 0, w = 0, r = 0;
 x = Tainter.taintedInt(x, 2);
@@ -248,7 +228,7 @@ Phosphor maintains tags for each element in an array, rather than a tag for the
 whole array\cite{bell2014phosphor}. This behavior can be seen in the excerpt below
 
 
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 // source
 int x = 0;
 x = Tainter.taintedInt(x, 1);
@@ -273,7 +253,7 @@ This example creates 2 tainted integers ($x$ and $y$), with two different ways o
 to create a third tainted integer $z$ (our sink). Note that we can then check the taint tag for $z$ and also print out
 a string representation.
 
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 // Source
 int x;
 x = MultiTainter.taintedInt(100, "source 1");
@@ -295,7 +275,7 @@ void return. Also note that the taint tag here must be an instance of \verb|Tain
 for primitives.
 \todo{Verify if this is always the case...if anyone knows better, please correct}
 
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 Object s = "My string";
 MultiTainter.taintedObject(s, new Taint("source x"));
 Object s2 = identity(s);
@@ -309,7 +289,7 @@ System.out.println(tag.toString());
 \paragraph{More than 32 distinct tags}
 We start with a simple example that shows how we can assign more than 32 distinct tags (in this case 33).
 
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 // Creating more than 32 distinct tags (the advantage of object tags)
 // Array of 33 different sources
 double[] mydata = new double[33];
@@ -350,7 +330,7 @@ of Taint objects.
 In order to access the nodes in the linked list, you need to make sure you also import
 the class \verb|edu.columbia.cs.psl.phosphor.struct.LinkedList.Node|.
 
-\begin{lstlisting}
+\begin{lstlisting}[language=java]
 // Iterating over dependencies in an object taint tag
 int x = MultiTainter.taintedInt(100, "x");
 int y = MultiTainter.taintedInt(100, "y");
