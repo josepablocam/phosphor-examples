@@ -6,7 +6,6 @@
 \usepackage{amssymb}
 \usepackage{centernot}
 \usepackage{graphicx}
-\usepackage[colorinlistoftodos]{todonotes}
 \usepackage{listings}
 \usepackage{color}
 \usepackage{booktabs}
@@ -55,10 +54,10 @@ literate={\$}{{\textcolor{red}{\$}}}1
 
 
 \newcommand*{\squiggly}{\rightsquigarrow}
+\newcommand{\todo}[1]{{\color{red}TODO: #1\\}}
 
 
-
-\title{Notes on Phosphor}
+\title{A Beginner's Notes on Phosphor}
 \author{Jos\'e Cambronero}
 
 
@@ -125,16 +124,13 @@ $ chmod +x jre-inst/bin/*
 
 \section{Testing}
 In order to verify that your build works, you can run the \verb|mvn verify| command, as explained in the documentation.
-You should expect this to take a bit, as it generates different instrumented JREs and tests them.
-% Ran into issues with ReflectionImplicitITCase with 1.7, switched to 1.8, emailed Jonathan
-% to see if this is expected or not.
-
-
+You should expect this to take a bit, as it generates different instrumented JREs and tests them. If all is succesful,
+you will obtain a Maven log message printed to stdout indicating so.
 
 \section{Usage}
 \subsection{Automatic}
-TODO: this remains to be experimented with
-TODO: taintSinks/taintSources usage
+\todo{this remains to be experimented with}
+\todo{taintSinks/taintSources usage}
 
 
 \subsection{Data flow}
@@ -152,7 +148,7 @@ original documentantion: \verb|taintedX|, which allows us to mark a primitive so
 We show a series of simple examples using this across different datatypes. Note that the types 
 can be easily replaced. Note that for each example we only show part of the relevant code,
 the interested reader can check the source code associated with this guide
-in \verb|com.josecambronero.IntegerTagExamples|.
+in \verb|java.com.josecambronero.IntegerTagExamples|.
 
 \paragraph{Simple binary operation}
 In this simple example, we create a source for the taint (variable $x$), and want to check
@@ -219,7 +215,9 @@ of the taint tag. A similar functionality is available for the MultiTainter by e
 the dependencies of the tag.
 
 In the example below, we can see that $y$ has taint stemming solely from $x$, while $z$ has
-taint stemming from both $x$ and $w$, and nothing stemmed from $r$.
+taint stemming from both $x$ and $w$, and nothing stemmed from $r$. Note that
+\verb|getTaintSource| is a simple helper that checks the bits in an integer tag to find the sources,
+it is not part of Phosphor.
 
 \begin{lstlisting}
 // sources
@@ -264,11 +262,123 @@ assert (Tainter.getTaint(y[1]) == 0);
 
 
 \subsection{Object taint tags}
-\label{sec:multitant}
-TODO: experiment with MultiTainter.java
+\label{sec:multitaint}
+We will now experiment with object taint tags, which allow us to create arbitrary numbers of distinct tags ($2^{32}$, which is arbitrarily large for our purposes). In order to creat object taint tags we turn to 
+\verb|edu.columbia.cs.psl.phosphor.runtime.MultiTainter|, which similarly to the integer Tainter, has tainted$X$, where
+$X$ is one of the various possible datatypes. As per documentation, we ignore methods
+with \verb|$$PHOSPHORTAGGED| suffixes as these are for internal use.
+
+\paragraph{Creating a simple object taint tag}
+This example creates 2 tainted integers ($x$ and $y$), with two different ways of creating taint labels, and performs an addition
+to create a third tainted integer $z$ (our sink). Note that we can then check the taint tag for $z$ and also print out
+a string representation.
+
+\begin{lstlisting}
+// Source
+int x;
+x = MultiTainter.taintedInt(100, "source 1");
+// Source
+int y;
+y = MultiTainter.taintedInt(100, new Taint("source 2"));
+// Sink
+int z = x + y;
+Taint tz = MultiTainter.getTaint(z);
+assert (tz != null);
+System.out.println(tz.toString());
+\end{lstlisting}
+
+\paragraph{Creating simple object taint tags: Object variable}
+Note that if we create a tainted object variable, using \verb|MultiTainter.taintedObject|, the label provided is
+shown as that taint tag's label, rather than simply as a dependency. In primitives, the label is null and instead
+appears in the dependency graph. Note that in contrast to the other \verb|taintedX| methods, \verb|taintedObject| has
+void return. Also note that the taint tag here must be an instance of \verb|Taint|, not any object as was possible
+for primitives.
+\todo{Verify if this is always the case...if anyone knows better, please correct}
+
+\begin{lstlisting}
+Object s = "My string";
+MultiTainter.taintedObject(s, new Taint("source x"));
+Object s2 = identity(s);
+Taint tag = MultiTainter.getTaint(s2);
+assert (tag != null);
+System.out.println((String) tag.getLabel());
+System.out.println(tag.toString());
+\end{lstlisting}
+
+
+\paragraph{More than 32 distinct tags}
+We start with a simple example that shows how we can assign more than 32 distinct tags (in this case 33).
+
+\begin{lstlisting}
+// Creating more than 32 distinct tags (the advantage of object tags)
+// Array of 33 different sources
+double[] mydata = new double[33];
+for(int i = 0; i < mydata.length; i++) {
+    mydata[i] = MultiTainter.taintedDouble((float) i, "Source " + i);
+    }
+    
+// Sink
+double result = 0.0;
+for (double elem : mydata) {
+    result += elem;
+    }
+Taint tag = MultiTainter.getTaint(result);
+assert (tag != null);
+System.out.println(tag.toString());
+\end{lstlisting}
+
+The print out of the tag in Figure~\ref{fig:33-tags} shows that we have 33 different taint tags as dependencies for this sink.
+
+
+\begin{figure}
+\includegraphics[width=\textwidth]{figures/33-tags.pdf}
+\caption{We can use object tags to overcome the limit of 32 distinct taint tags with integer tags}
+\label{fig:33-tags}
+\end{figure}
+
+\todo{example}
+ 
+\paragraph{Tracing dependencies}
+So far we have been simply printing out the taint tag, in which you can see the dependencies.
+However, we might find it useful to actually iterate over these dependencies.
+In order to do this (and to more broadly see what we can do with a Taint object),
+we explore \verb|edu.columbia.cs.psl.phosphor.runtime.Taint|.
+In this example, we'll use \verb|getDependencies|,
+which returns a
+\verb|edu.columbia.cs.psl.phosphor.struct.LinkedList|
+of Taint objects.
+In order to access the nodes in the linked list, you need to make sure you also import
+the class \verb|edu.columbia.cs.psl.phosphor.struct.LinkedList.Node|.
+
+\begin{lstlisting}
+// Iterating over dependencies in an object taint tag
+int x = MultiTainter.taintedInt(100, "x");
+int y = MultiTainter.taintedInt(100, "y");
+int z = x + y;
+double w = MultiTainter.taintedDouble(100.0, "w");
+int n = 0;
+
+int result = z + (int) w + n;
+Taint tag = MultiTainter.getTaint(result);
+assert (tag != null);
+
+LinkedList<Object> dependencies = tag.getDependencies();
+System.out.println(dependencies.toString());
+
+// iterate over the linked list
+Node currNode = (Node) dependencies.getFirst();
+while (currNode != null) {
+    String currDepName = (String) currNode.entry;
+    System.out.println(currDepName);
+    currNode = currNode.next;
+    }
+\end{lstlisting}
+
 
 \subsection{Implicit flow (control flow taints)}
-TODO: experiment with implicit flows
+\todo{experiment with implicit flows}
+Note that as per Jon's explanation boolean negation becomes jump instruction so need
+this section to handle things like \verb|y=!x|.
 
 \nocite{*}
 \bibliographystyle{plain}
