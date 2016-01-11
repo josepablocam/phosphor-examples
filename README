@@ -9,7 +9,9 @@ the examples here by
 mvn package (creates jar with examples)
 and then running
 
-./run_examples.sh <path-to-instrumented-jre> <path-to-phosphor-jar>
+./run_examples.sh <folder-instrumented-jre-and-phosphor-jar>
+(see ./run_examples.sh -h  for more details)
+
 (I'm sure there is a nicer way of doing this with maven... but I'm not as familiar with it,
 so feel free to modify and put in a PR if you are)
 
