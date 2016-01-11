@@ -113,6 +113,23 @@ public class IntegerTagExamples
         assert (Tainter.getTaint(y[1]) == 0);
     }
 
+    public static void testExample6() {
+        // Boolean types
+        // source
+        boolean x;
+        x = Tainter.taintedBoolean(false, 2);
+        boolean y;
+        y = x & false;
+        //System.out.println(Tainter.getTaint(y));
+        // Note that ! becomes jump (as per Jon's explanation) so
+        // won't track correctly without enabling implicit flow tracking
+        y = !x;
+        //System.out.println(Tainter.getTaint(y));
+        y = !(x & true);
+        //System.out.println(Tainter.getTaint(y));
+        //assert(Tainter.getTaint(y) != 0);
+    }
+
     // Sourced from the original Phosphor code
     public static void main(String[] args) {
         for (Method m : IntegerTagExamples.class.getDeclaredMethods()) {
