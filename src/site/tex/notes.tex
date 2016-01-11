@@ -30,7 +30,7 @@
 
 \usepackage{titlesec}
 
-\setcounter{secnumdepth}{4}
+\setcounter{secnumdepth}{3}
 
 \titleformat{\paragraph}
 {\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
@@ -241,7 +241,7 @@ assert (Tainter.getTaint(y[1]) == 0);
 
 
 
-\subsection{Object taint tags}
+\subsubsection{Object taint tags}
 \label{sec:multitaint}
 We will now experiment with object taint tags, which allow us to create arbitrary numbers of distinct tags ($2^{32}$, which is arbitrarily large for our purposes). In order to creat object taint tags we turn to 
 \verb|edu.columbia.cs.psl.phosphor.runtime.MultiTainter|, which similarly to the integer Tainter, has tainted$X$, where
