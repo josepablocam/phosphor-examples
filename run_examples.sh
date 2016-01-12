@@ -50,24 +50,29 @@ if [ $# != 1 ]
 fi
 
 # Run tests
-JRE_INT=${1}/jre-inst-int
-JRE_OBJ=${1}/jre-inst-obj
-PHOSPHOR_JAR=$(find $1 -iname "Phosphor*SNAPSHOT.jar")
-EXAMPLES_JAR=$(find ./target -iname "phosphor-examples-*SNAPSHOT.jar")
-
-if [ ! -d $JRE_INST ] || [ ! -f $PHOSPHOR_JAR ]
+if [ ! -d $1 ]
   then
-  warn "Arguments provided not found"
+  warn "Directory $1 not found"
   exit 1
 fi
 
+JRE_INT=${1}/jre-inst-int
+JRE_OBJ=${1}/jre-inst-obj
+PHOSPHOR_JAR=$(find $1 -iname "Phosphor-[0-9]*SNAPSHOT.jar")
+EXAMPLES_JAR=$(find ./target -iname "phosphor-examples-*SNAPSHOT.jar")
 
-if [ ! -f $EXAMPLES_JAR ]
- then
-  warn "Missing $EXAMPLES_JAR, running mvn package"
-  mvn package
+if [ -z $PHOSPHOR_JAR ]
+  then
+    warn "Missing Phosphor JAR, run mvn package (or mvn verify) in the appropriate project"
+    exit 1
 fi
 
+if [ -z $EXAMPLES_JAR ]
+ then
+  warn "Missing phosphor-examples JAR, running mvn package"
+  mvn package
+  EXAMPLES_JAR=$(find ./target -iname "phosphor-examples-*SNAPSHOT.jar")
+fi
 
 run_example $JRE_INT $PHOSPHOR_JAR com.josecambronero.IntegerTagExamples
 run_example $JRE_OBJ $PHOSPHOR_JAR com.josecambronero.ObjectTagExamples
