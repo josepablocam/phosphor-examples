@@ -3,32 +3,13 @@ package com.josecambronero;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import com.sun.org.apache.xpath.internal.operations.Mult;
 import edu.columbia.cs.psl.phosphor.runtime.MultiTainter;
 import edu.columbia.cs.psl.phosphor.runtime.Taint;
-import edu.columbia.cs.psl.phosphor.struct.TaintedWithObjTag;
 import edu.columbia.cs.psl.phosphor.struct.LinkedList;
 import edu.columbia.cs.psl.phosphor.struct.LinkedList.Node;
 
 
-/**
- * Created by josecambronero on 1/11/16.
- */
 public class ObjectTagExamples {
-
-//    public static void testExample1() throws Exception{
-//        // TODO: waiting on Jon to hear back about unary ops in booleans...strange behavior right now
-//        // Source
-//        boolean x;
-//        x = MultiTainter.taintedBoolean(false, new Taint("source1"));
-//        boolean y;
-//        y = !x;
-//        Taint t = MultiTainter.getTaint(y);
-//        assert(t == null);
-//        //String s = (String) t.toString();
-//        //System.out.println(s);
-//        //assert(MultiTainter.getTaint(x) == null);
-//    }
 
     public static Object identity(Object o) {
         return o;

@@ -58,6 +58,7 @@ fi
 
 JRE_INT=${1}/jre-inst-int
 JRE_OBJ=${1}/jre-inst-obj
+JRE_IMP=${1}/jre-inst-implicit
 PHOSPHOR_JAR=$(find $1 -iname "Phosphor-[0-9]*SNAPSHOT.jar")
 EXAMPLES_JAR=$(find ./target -iname "phosphor-examples-*SNAPSHOT.jar")
 
@@ -77,4 +78,4 @@ fi
 run_example $JRE_INT $PHOSPHOR_JAR com.josecambronero.IntegerTagExamples
 run_example $JRE_OBJ $PHOSPHOR_JAR com.josecambronero.ObjectTagExamples
 # TODO automatic
-# TODO implicit flows
+run_example $JRE_IMP $PHOSPHOR_JAR com.josecambronero.ImplicitFlowsExamples
