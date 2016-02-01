@@ -316,8 +316,6 @@ The print out of the tag in Figure~\ref{fig:33-tags} shows that we have 33 diffe
 \label{fig:33-tags}
 \end{figure}
 
-\todo{example}
- 
 \paragraph{Tracing dependencies}
 So far we have been simply printing out the taint tag, in which you can see the dependencies.
 However, we might find it useful to actually iterate over these dependencies.
@@ -325,6 +323,7 @@ In order to do this (and to more broadly see what we can do with a Taint object)
 we explore \verb|edu.columbia.cs.psl.phosphor.runtime.Taint|.
 In this example, we'll use \verb|getDependencies|,
 which returns a
+\\
 \verb|edu.columbia.cs.psl.phosphor.struct.LinkedList|
 of Taint objects.
 In order to access the nodes in the linked list, you need to make sure you also import
@@ -355,10 +354,85 @@ while (currNode != null) {
 \end{lstlisting}
 
 
-\subsection{Implicit flow (control flow taints)}
-\todo{experiment with implicit flows}
-Note that as per Jon's explanation boolean negation becomes jump instruction so need
-this section to handle things like \verb|y=!x|.
+\subsection{Implicit flows (control flow taints)}
+In this section we'll go over a series of examples showing how to use the
+control flow tracking functionality of Phosphor. Tracking tags through control flow allows
+us to keep track of implicit flows, meaning, information flows from one variable to another
+that do not take place directly through assignments (explicit flows) but rather as a consequence
+of control flow conditions/tests. For purposes of this section, we use a JRE that has been
+instrumented to use object taint tags and control flow tracking.
+
+\paragraph{Boolean negation}
+We initially had some issues tracking tags when we performed boolean negation. However,
+after speaking with Jon, it was made clear to us that boolean negation is translated into
+a jump instruction, so tracking tags under such an operation requires that we enable control flow
+tracking. This first example shows how the behavior is as expected once this has been enabled.
+
+\begin{lstlisting}[language=java]
+// Source
+boolean x;
+x = MultiTainter.taintedBoolean(false, "source1");
+boolean y;
+y = !x;
+Taint t = MultiTainter.getTaint(y);
+// we can now track unary negation, by using control flow tracking
+assert(t != null);
+\end{lstlisting}
+
+
+\paragraph{If-Else statement}
+Our following example shows a classic case of implicit flow, where the definition of a variable, $y$,
+is not a function of a tainted variable, $x$, directly, but rather the tainted variable affects the
+branch taken and thus the value assigned to $y$.
+
+\begin{lstlisting}[language=java]
+// Source
+double x = MultiTainter.taintedDouble(100.0, "x");
+double y = 0.0;
+
+// information flows from x to y through control flow
+if (x >= 90.0) {
+    y = 20.0;
+} else {
+    y = 30.0;
+}
+
+Taint t = MultiTainter.getTaint(y);
+assert(t != null);
+\end{lstlisting}
+
+\paragraph{Ternary operator}
+This example is exactly the same idea as the prior example, but we now show that tracking is succesfully
+performed with the ternary operator as well.
+
+\begin{lstlisting}[language=java]
+// source
+boolean x = MultiTainter.taintedBoolean(true, "x");
+// sink
+double y = (x) ? 1.0 : 2.0;
+Taint t  = MultiTainter.getTaint(y);
+assert (t != null);
+\end{lstlisting}
+
+
+\paragraph{For-loop}
+At risk of beating a dead horse, we introduce a simple example showing the succesful tracking
+of taint in a for-loop where the tainted variable is involved in the termination condition.
+
+\begin{lstlisting}
+// source
+int x = MultiTainter.taintedInt(100, "x");
+int y = 0;
+
+// loop termination condition allows information to flow
+for(int i = 0; i < x; i++) {
+    y += i;
+ }
+
+Taint t = MultiTainter.getTaint(y);
+assert (t != null);
+\end{lstlisting}
+
 
 \nocite{*}
 \bibliographystyle{plain}
