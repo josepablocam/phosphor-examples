@@ -14,18 +14,29 @@ function announce {
  }
 
 function run_example {
-  jre_inst=$1
-  phosphor_jar=$2
-  class=$3
+  local jre_inst=$1
+  local phosphor_jar=$2
+  local examples_jar=$3
+  local class=$4
+  local rest="${@:5}"
 
   if [ -d $jre_inst ]
     then
       announce "Running examples from $class"
-      $jre_inst/bin/java -Xbootclasspath/a:$phosphor_jar -javaagent:$phosphor_jar -cp $EXAMPLES_JAR \
-      -ea $class
+      $jre_inst/bin/java -Xbootclasspath/a:$phosphor_jar -javaagent:$phosphor_jar -cp $examples_jar\
+      -ea $class $rest
     else
       warn "Skipping ${class} due to lack of instrumented JRE"
   fi
+ }
+
+ function inst_jar {
+   local phosphor_jar=$1
+   local taint_src=$2
+   local taint_sink=$3
+   local src=$4
+   local dest_folder=$5
+   java -jar $phosphor_jar -taintSources $taint_src -taintSinks $taint_sink $src $dest_folder
  }
 
 function help {
@@ -75,7 +86,17 @@ if [ -z $EXAMPLES_JAR ]
   EXAMPLES_JAR=$(find ./target -iname "phosphor-examples-*SNAPSHOT.jar")
 fi
 
-run_example $JRE_INT $PHOSPHOR_JAR com.josecambronero.IntegerTagExamples
-run_example $JRE_OBJ $PHOSPHOR_JAR com.josecambronero.ObjectTagExamples
-# TODO automatic
-run_example $JRE_IMP $PHOSPHOR_JAR com.josecambronero.ImplicitFlowsExamples
+# Instrument our example
+mkdir inst_examples/
+inst_jar $PHOSPHOR_JAR src/main/resources/taint-sources src/main/resources/taint-sinks $EXAMPLES_JAR target/inst_examples/
+INST_EXAMPLES_JAR=$(find target/inst_examples/ -iname "phosphor-examples-*SNAPSHOT.jar")
+echo $INST_EXAMPLES_JAR
+
+run_example $JRE_INT $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.IntegerTagExamples
+run_example $JRE_OBJ $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.ObjectTagExamples
+run_example $JRE_IMP $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.ImplicitFlowsExamples
+# only runnning with integer tags, but the idea is the same for other cases
+run_example $JRE_INT $PHOSPHOR_JAR $INST_EXAMPLES_JAR com.josecambronero.AutoExample
+# this doesn't seem to work, requires pre-instrumented JAR
+run_example $JRE_INT $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.AutoExample\
+  -taintSources src/main/resources/taint-sources -taintSinks src/main/resources/taint-sinks
