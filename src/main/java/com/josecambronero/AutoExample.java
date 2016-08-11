@@ -22,6 +22,7 @@ public class AutoExample {
 
     // flow from source to sink
     public static void testExample2() {
+        System.out.println("==> Expect exception");
         int tainted = gimmeTainted(2);
         printMyInt(tainted);
     }

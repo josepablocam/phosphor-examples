@@ -71,7 +71,7 @@ JRE_INT=${1}/jre-inst-int
 JRE_OBJ=${1}/jre-inst-obj
 JRE_IMP=${1}/jre-inst-implicit
 PHOSPHOR_JAR=$(find $1 -iname "Phosphor-[0-9]*SNAPSHOT.jar")
-EXAMPLES_JAR=$(find ./target -iname "phosphor-examples-*SNAPSHOT.jar")
+EXAMPLES_JAR=$(find ./target -depth 1 -iname "phosphor-examples-*SNAPSHOT.jar")
 
 if [ -z $PHOSPHOR_JAR ]
   then
@@ -86,11 +86,9 @@ if [ -z $EXAMPLES_JAR ]
   EXAMPLES_JAR=$(find ./target -iname "phosphor-examples-*SNAPSHOT.jar")
 fi
 
-# Instrument our example
-mkdir inst_examples/
+# Instrument our example with integer tags
 inst_jar $PHOSPHOR_JAR src/main/resources/taint-sources src/main/resources/taint-sinks $EXAMPLES_JAR target/inst_examples/
 INST_EXAMPLES_JAR=$(find target/inst_examples/ -iname "phosphor-examples-*SNAPSHOT.jar")
-echo $INST_EXAMPLES_JAR
 
 run_example $JRE_INT $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.IntegerTagExamples
 run_example $JRE_OBJ $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.ObjectTagExamples
@@ -98,5 +96,6 @@ run_example $JRE_IMP $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.ImplicitFlow
 # only runnning with integer tags, but the idea is the same for other cases
 run_example $JRE_INT $PHOSPHOR_JAR $INST_EXAMPLES_JAR com.josecambronero.AutoExample
 # this doesn't seem to work, requires pre-instrumented JAR
+echo "==> Autoexample fails (i.e. no exception) with non-pre-instrumented jar"
 run_example $JRE_INT $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.AutoExample\
   -taintSources src/main/resources/taint-sources -taintSinks src/main/resources/taint-sinks

@@ -81,6 +81,28 @@ public class ObjectTagExamples {
         }
     }
 
+    public static void testExample5() {
+        // Creating object tags for primitives
+        // Source
+        int x;
+        x = MultiTainter.taintedInt(100, "source 1");
+        // Source
+        int y;
+        y = MultiTainter.taintedInt(100, new Taint("source 2"));
+        // Sink
+        int z = x + y;
+        // cast int to string
+        String zs = Integer.toString(z);
+        Taint tzs = MultiTainter.getTaint(zs);
+        Taint tz = MultiTainter.getTaint(z);
+        assert (tz != null);
+        // tzs is not null but as seen below the deps are not right
+        assert (tzs != null);
+        System.out.println(tz.toString());
+        // dependencies here are not right
+        System.out.println(tzs.toString());
+    }
+
     // Sourced from the original Phosphor code
     public static void main(String[] args) {
         for (Method m : ObjectTagExamples.class.getDeclaredMethods()) {

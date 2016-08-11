@@ -130,6 +130,23 @@ public class IntegerTagExamples
         //assert(Tainter.getTaint(y) != 0);
     }
 
+    public static void testExample7() {
+        // A simple binary operation
+        // source
+        int x = 0;
+        // sink
+        int y = 0;
+        // primitive and taint tag
+        x = Tainter.taintedInt(x, 1);
+        y = x * 3;
+        String ys = Integer.toString(y);
+        // check sink for taint
+        assert (Tainter.getTaint(y) != 0);
+        // this fails for some reason
+        assert (Tainter.getTaint(ys) != 0);
+    }
+
+
     // Sourced from the original Phosphor code
     public static void main(String[] args) {
         for (Method m : IntegerTagExamples.class.getDeclaredMethods()) {
