@@ -57,7 +57,7 @@ public class ObjectTagExamples {
         assert (tag != null);
         System.out.println(tag.toString());
     }
-
+/*
     public static void testExample4() {
         // Iterating over dependencies in an object taint tag
         int x = MultiTainter.taintedInt(100, "x");
@@ -80,6 +80,7 @@ public class ObjectTagExamples {
             currNode = currNode.next;
         }
     }
+ */
 
     public static void testExample5() {
         // Creating object tags for primitives

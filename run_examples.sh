@@ -16,14 +16,16 @@ function announce {
 function run_example {
   local jre_inst=$1
   local phosphor_jar=$2
-  local examples_jar=$3
-  local class=$4
-  local rest="${@:5}"
+  local taint_src=$3
+  local taint_sink=$4
+  local examples_jar=$5
+  local class=$6
+  local rest="${@:7}"
 
   if [ -d $jre_inst ]
     then
       announce "Running examples from $class"
-      $jre_inst/bin/java -Xbootclasspath/a:$phosphor_jar -javaagent:$phosphor_jar -cp $examples_jar\
+      $jre_inst/bin/java -Xbootclasspath/a:$phosphor_jar -javaagent:$phosphor_jar=taintSources=$taint_src,taintSinks=$taint_sink -cp $examples_jar\
       -ea $class $rest
     else
       warn "Skipping ${class} due to lack of instrumented JRE"
@@ -32,11 +34,9 @@ function run_example {
 
  function inst_jar {
    local phosphor_jar=$1
-   local taint_src=$2
-   local taint_sink=$3
-   local src=$4
-   local dest_folder=$5
-   java -jar $phosphor_jar -taintSources $taint_src -taintSinks $taint_sink $src $dest_folder
+   local src=$2
+   local dest_folder=$3
+   java -jar $phosphor_jar $src $dest_folder
  }
 
 function help {
@@ -67,11 +67,11 @@ if [ ! -d $1 ]
   exit 1
 fi
 
-JRE_INT=${1}/jre-inst-int
+JRE_INST=${1}/jre-inst
 JRE_OBJ=${1}/jre-inst-obj
 JRE_IMP=${1}/jre-inst-implicit
-PHOSPHOR_JAR=$(find $1 -iname "Phosphor-[0-9]*SNAPSHOT.jar")
-EXAMPLES_JAR=$(find ./target -depth 1 -iname "phosphor-examples-*SNAPSHOT.jar")
+PHOSPHOR_JAR=$(find $1 -iname 'Phosphor-[0-9]*SNAPSHOT.jar')
+EXAMPLES_JAR=$(find ./target -maxdepth 1 -iname 'phosphor-examples-*SNAPSHOT.jar')
 
 if [ -z $PHOSPHOR_JAR ]
   then
@@ -86,16 +86,13 @@ if [ -z $EXAMPLES_JAR ]
   EXAMPLES_JAR=$(find ./target -iname "phosphor-examples-*SNAPSHOT.jar")
 fi
 
-# Instrument our example with integer tags
-inst_jar $PHOSPHOR_JAR src/main/resources/taint-sources src/main/resources/taint-sinks $EXAMPLES_JAR target/inst_examples/
+# Instrument our example
+inst_jar $PHOSPHOR_JAR $EXAMPLES_JAR target/inst_examples/
 INST_EXAMPLES_JAR=$(find target/inst_examples/ -iname "phosphor-examples-*SNAPSHOT.jar")
 
-run_example $JRE_INT $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.IntegerTagExamples
-run_example $JRE_OBJ $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.ObjectTagExamples
-run_example $JRE_IMP $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.ImplicitFlowsExamples
-# only runnning with integer tags, but the idea is the same for other cases
-run_example $JRE_INT $PHOSPHOR_JAR $INST_EXAMPLES_JAR com.josecambronero.AutoExample
-# this doesn't seem to work, requires pre-instrumented JAR
-echo "==> Autoexample fails (i.e. no exception) with non-pre-instrumented jar"
-run_example $JRE_INT $PHOSPHOR_JAR $EXAMPLES_JAR com.josecambronero.AutoExample\
+run_example $JRE_OBJ $PHOSPHOR_JAR src/main/resources/taint-sources src/main/resources/taint-sinks $EXAMPLES_JAR com.josecambronero.ObjectTagExamples
+run_example $JRE_IMP $PHOSPHOR_JAR src/main/resources/taint-sources src/main/resources/taint-sinks $EXAMPLES_JAR com.josecambronero.ImplicitFlowsExamples
+# run with pre-instrumented JAR
+run_example $JRE_INST $PHOSPHOR_JAR src/main/resources/taint-sources src/main/resources/taint-sinks $INST_EXAMPLES_JAR com.josecambronero.AutoExample
+run_example $JRE_INST $PHOSPHOR_JAR src/main/resources/taint-sources src/main/resources/taint-sinks $EXAMPLES_JAR com.josecambronero.AutoExample\
   -taintSources src/main/resources/taint-sources -taintSinks src/main/resources/taint-sinks
